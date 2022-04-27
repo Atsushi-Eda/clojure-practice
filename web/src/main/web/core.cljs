@@ -3,11 +3,20 @@
             [reagent.dom :as reagent]
             [react-query :as rq :refer (QueryClientProvider QueryClient)]))
 
-(def ^:private todos [{:id 1 :title "牛乳を買う"} {:id 2 :title "牛乳を飲む"}])
+(def queryClient (QueryClient.))
+
+(defn useTodos []
+      (rq/useQuery "todos" (fn [] (-> (js/fetch "http://localhost:8081/todo")
+                               (.then (fn [response] (.json response)))))))
+
+(defn todo-list []
+        (let [response (useTodos)]
+             [:div (map (fn [todo] [:p {:key (todo :id)} (todo :title)]) ((js->clj response :keywordize-keys true) :data))]))
+
 
 (defn app []
-      [:div
-       (map (fn [todo] [:p {:key (todo :id)} (todo :title)]) todos)])
+      [:> QueryClientProvider {:client queryClient}
+          [:f> todo-list]])
 
 (defn ^:dev/after-load render
       []
