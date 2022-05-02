@@ -2,9 +2,19 @@
     (:gen-class)
     (:require [bidi.ring :as ring]
       [clojure.data.json :as json]
-      [ring.adapter.jetty :as jetty]))
+      [ring.adapter.jetty :as jetty]
+      [clojure.java.jdbc :as jdbc]))
 
-(def ^:private todos [{:id 1 :title "牛乳を買う"} {:id 2 :title "牛乳を飲む"}])
+(def mysql-db {:dbtype "mysql"
+               :host "localhost"
+               :port 3306
+               :dbname "clojure-practice"
+               :user "root"
+               :password "clojure-practice"})
+
+(defn select-todos[]
+      (jdbc/query mysql-db
+                  ["select * from todo"]))
 
 (defn- todo-handler [request]
        {:status 200
@@ -12,7 +22,7 @@
                   "Content-Type" "application/json; charset=utf-8";; TODO: middlewareで設定する
                   "Access-Control-Allow-Origin" "http://localhost:8080" ;; TODO: middlewareで設定する
                   }
-        :body (json/write-str todos)})
+        :body (json/write-str (select-todos))})
 
 (defn- not-found-handler [request]
        {:status 404
