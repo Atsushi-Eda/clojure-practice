@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  db:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_DATABASE=clojure-practice
+      - MYSQL_ROOT_PASSWORD=clojure-practice
+    volumes:
+      - mysql-volume:/var/lib/mysql:rw
+    container_name: clojure-practice-db
+
+volumes:
+  mysql-volume:
