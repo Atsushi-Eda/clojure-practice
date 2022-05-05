@@ -17,7 +17,7 @@
       (jdbc/query mysql-db
                   ["select * from todo"]))
 
-(defn- todo-handler [request]
+(defn- get-todos-handler [request]
        {:status 200
         :headers {
                   "Content-Type" "application/json; charset=utf-8";; TODO: middlewareで設定する
@@ -34,7 +34,7 @@
         :body (json/write-str {:message "Not Found"})})
 
 (def ^:private route
-  ["/" {"todo" {:get todo-handler}
+  ["/" {"todo" {:get get-todos-handler}
         true not-found-handler}])
 
 (def ^:private handler
