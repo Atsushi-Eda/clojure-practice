@@ -17,6 +17,10 @@
       (jdbc/query mysql-db
                   ["select * from todo"]))
 
+(defn insert-todo[title]
+      (jdbc/insert! mysql-db
+                  :todo {:title title}))
+
 (defn- get-todos-handler [request]
        {:status 200
         :headers {
@@ -24,6 +28,15 @@
                   "Access-Control-Allow-Origin" "http://localhost:8080" ;; TODO: middlewareで設定する
                   }
         :body (json/write-str (select-todos))})
+
+(defn- post-todo-handler [request]
+       (let [id ((first (insert-todo ((request :body) :title))) :generated_key)]
+       {:status 200
+        :headers {
+                  "Content-Type" "application/json; charset=utf-8";; TODO: middlewareで設定する
+                  "Access-Control-Allow-Origin" "http://localhost:8080" ;; TODO: middlewareで設定する
+                  }
+        :body (json/write-str {:id id})}))
 
 (defn- not-found-handler [request]
        {:status 404
@@ -34,7 +47,7 @@
         :body (json/write-str {:message "Not Found"})})
 
 (def ^:private route
-  ["/" {"todo" {:get get-todos-handler}
+  ["/" {"todo" {:get get-todos-handler :post post-todo-handler}
         true not-found-handler}])
 
 (def ^:private handler
