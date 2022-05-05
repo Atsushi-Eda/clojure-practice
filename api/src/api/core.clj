@@ -1,6 +1,7 @@
 (ns api.core
     (:gen-class)
     (:require [bidi.ring :as ring]
+      [ring.middleware.json :as ring-json]
       [clojure.data.json :as json]
       [ring.adapter.jetty :as jetty]
       [clojure.java.jdbc :as jdbc]))
@@ -38,7 +39,7 @@
 
 (def ^:private handler
   (-> (ring/make-handler route)
-      ))
+      (ring-json/wrap-json-body {:key-fn keyword})))
 
 (defn -main
       [& args]
