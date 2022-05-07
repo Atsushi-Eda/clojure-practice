@@ -5,8 +5,7 @@
   "src/test"]
 
  :dependencies
- [[reagent "1.1.1"]
-  [react-query "3.38.0"]]
+ [[reagent "1.1.1"]]
 
  :builds
  {:app {:target :browser
