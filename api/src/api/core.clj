@@ -22,6 +22,10 @@
   (jdbc/insert! mysql-db
                 :todo {:title title}))
 
+(defn update-todo-completed [id completed]
+  (jdbc/update! mysql-db
+                :todo {:completed completed} ["id = ?" id]))
+
 (defn delete-todo [id]
   (jdbc/delete! mysql-db
                 :todo ["id = ?" id]))
@@ -41,6 +45,12 @@
                }
      :body (json/write-str {:id id})}))
 
+(defn- put-todo-handler [request]
+  (update-todo-completed ((request :params) :id) ((request :body) :completed))
+  {:status 200
+   :headers {"Access-Control-Allow-Origin" "http://localhost:8080" ;; TODO: middlewareで設定する
+             }})
+
 (defn- delete-todo-handler [request]
   (delete-todo ((request :params) :id))
   {:status 200
@@ -50,7 +60,7 @@
 (defn- options-todo-handler [request]
   {:status 200
    :headers {"Access-Control-Allow-Origin" "http://localhost:8080"
-             "Access-Control-Allow-Methods" "GET, POST, DELETE"
+             "Access-Control-Allow-Methods" "GET, POST, PUT, DELETE"
              "Access-Control-Allow-Headers" "Content-Type" ;; TODO: 各handlerのAccess-Control-Allow-Originと合わせてRing CORSに移行
              }})
 
@@ -63,7 +73,7 @@
 
 (def ^:private route
   ["/" {"todo" {:get get-todos-handler :post post-todo-handler :options options-todo-handler}
-        ["todo/" :id] {:delete delete-todo-handler :options options-todo-handler}
+        ["todo/" :id] {:delete delete-todo-handler :put put-todo-handler :options options-todo-handler}
         true not-found-handler}])
 
 (def ^:private handler
