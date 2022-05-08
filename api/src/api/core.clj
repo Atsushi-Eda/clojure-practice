@@ -2,7 +2,6 @@
   (:gen-class)
   (:require
    [bidi.ring :as ring]
-   [clojure.data.json :as json]
    [clojure.java.jdbc :as jdbc]
    [ring.adapter.jetty :as jetty]
    [ring.middleware.cors :as ring-cors]
@@ -33,16 +32,12 @@
 
 (defn- get-todos-handler [request]
   {:status 200
-   :headers {"Content-Type" "application/json; charset=utf-8";; TODO: middlewareで設定する
-             }
-   :body (json/write-str (select-todos))})
+   :body (select-todos)})
 
 (defn- post-todo-handler [request]
   (let [id ((first (insert-todo ((request :body) :title))) :generated_key)]
     {:status 200
-     :headers {"Content-Type" "application/json; charset=utf-8";; TODO: middlewareで設定する
-               }
-     :body (json/write-str {:id id})}))
+     :body {:id id}}))
 
 (defn- put-todo-handler [request]
   (update-todo-completed ((request :params) :id) ((request :body) :completed))
@@ -54,9 +49,7 @@
 
 (defn- not-found-handler [request]
   {:status 404
-   :headers {"Content-Type" "application/json; charset=utf-8" ;; TODO: middlewareで設定する
-             }
-   :body (json/write-str {:message "Not Found"})})
+   :body {:message "Not Found"}})
 
 (def ^:private route
   ["/" {"todo" {:get get-todos-handler :post post-todo-handler}
@@ -68,7 +61,8 @@
       (ring-cors/wrap-cors :access-control-allow-origin [#"http://localhost:8080"]
                            :access-control-allow-headers #{:content-type}
                            :access-control-allow-methods #{:get :post :put :delete})
-      (ring-json/wrap-json-body {:key-fn keyword})))
+      (ring-json/wrap-json-body {:key-fn keyword})
+      (ring-json/wrap-json-response)))
 
 (defn -main
   [& args]
