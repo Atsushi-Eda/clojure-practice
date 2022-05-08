@@ -5,6 +5,7 @@
    [clojure.data.json :as json]
    [clojure.java.jdbc :as jdbc]
    [ring.adapter.jetty :as jetty]
+   [ring.middleware.cors :as ring-cors]
    [ring.middleware.json :as ring-json]))
 
 (def mysql-db {:dbtype "mysql"
@@ -33,7 +34,6 @@
 (defn- get-todos-handler [request]
   {:status 200
    :headers {"Content-Type" "application/json; charset=utf-8";; TODO: middlewareで設定する
-             "Access-Control-Allow-Origin" "http://localhost:8080" ;; TODO: middlewareで設定する
              }
    :body (json/write-str (select-todos))})
 
@@ -41,43 +41,33 @@
   (let [id ((first (insert-todo ((request :body) :title))) :generated_key)]
     {:status 200
      :headers {"Content-Type" "application/json; charset=utf-8";; TODO: middlewareで設定する
-               "Access-Control-Allow-Origin" "http://localhost:8080" ;; TODO: middlewareで設定する
                }
      :body (json/write-str {:id id})}))
 
 (defn- put-todo-handler [request]
   (update-todo-completed ((request :params) :id) ((request :body) :completed))
-  {:status 200
-   :headers {"Access-Control-Allow-Origin" "http://localhost:8080" ;; TODO: middlewareで設定する
-             }})
+  {:status 200})
 
 (defn- delete-todo-handler [request]
   (delete-todo ((request :params) :id))
-  {:status 200
-   :headers {"Access-Control-Allow-Origin" "http://localhost:8080" ;; TODO: middlewareで設定する
-             }})
-
-(defn- options-todo-handler [request]
-  {:status 200
-   :headers {"Access-Control-Allow-Origin" "http://localhost:8080"
-             "Access-Control-Allow-Methods" "GET, POST, PUT, DELETE"
-             "Access-Control-Allow-Headers" "Content-Type" ;; TODO: 各handlerのAccess-Control-Allow-Originと合わせてRing CORSに移行
-             }})
+  {:status 200})
 
 (defn- not-found-handler [request]
   {:status 404
    :headers {"Content-Type" "application/json; charset=utf-8" ;; TODO: middlewareで設定する
-             "Access-Control-Allow-Origin" "http://localhost:8080" ;; TODO: middlewareで設定する
              }
    :body (json/write-str {:message "Not Found"})})
 
 (def ^:private route
-  ["/" {"todo" {:get get-todos-handler :post post-todo-handler :options options-todo-handler}
-        ["todo/" :id] {:delete delete-todo-handler :put put-todo-handler :options options-todo-handler}
+  ["/" {"todo" {:get get-todos-handler :post post-todo-handler}
+        ["todo/" :id] {:delete delete-todo-handler :put put-todo-handler}
         true not-found-handler}])
 
 (def ^:private handler
   (-> (ring/make-handler route)
+      (ring-cors/wrap-cors :access-control-allow-origin [#"http://localhost:8080"]
+                           :access-control-allow-headers #{:content-type}
+                           :access-control-allow-methods #{:get :post :put :delete})
       (ring-json/wrap-json-body {:key-fn keyword})))
 
 (defn -main
