@@ -13,9 +13,12 @@
   (rq/useMutation (fn [title] (js/fetch "http://localhost:8081/todo" (clj->js {:method "POST" :headers {:Content-Type "application/json"} :body (js/JSON.stringify (clj->js {:title title}))})))
                   #js {:onSuccess (fn [response title] (-> (.json response) (.then (fn [json] (.setQueryData queryClient "todos" (fn [old] (clj->js (conj (js->clj old) {:id (.-id json) :title title}))))))))}))
 
+(defn todo-item [todo]
+  [:p (todo :title)])
+
 (defn todo-list []
   (let [response (useTodos)]
-    [:div (map (fn [todo] [:p {:key (todo :id)} (todo :title)]) ((js->clj response :keywordize-keys true) :data))]))
+    [:div (map (fn [todo] ^{:key (todo :id)} [:f> todo-item todo]) ((js->clj response :keywordize-keys true) :data))]))
 
 (defn todo-form []
   (let [mutation (usePostTodo)]
