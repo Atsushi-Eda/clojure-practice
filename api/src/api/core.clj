@@ -22,6 +22,10 @@
   (jdbc/insert! mysql-db
                 :todo {:title title}))
 
+(defn delete-todo [id]
+  (jdbc/delete! mysql-db
+                :todo ["id = ?" id]))
+
 (defn- get-todos-handler [request]
   {:status 200
    :headers {"Content-Type" "application/json; charset=utf-8";; TODO: middlewareで設定する
@@ -36,6 +40,12 @@
                "Access-Control-Allow-Origin" "http://localhost:8080" ;; TODO: middlewareで設定する
                }
      :body (json/write-str {:id id})}))
+
+(defn- delete-todo-handler [request]
+  (delete-todo ((request :params) :todo-id))
+  {:status 200
+   :headers {"Access-Control-Allow-Origin" "http://localhost:8080" ;; TODO: middlewareで設定する
+             }})
 
 (defn- options-todo-handler [request]
   {:status 200
@@ -52,6 +62,7 @@
 
 (def ^:private route
   ["/" {"todo" {:get get-todos-handler :post post-todo-handler :options options-todo-handler}
+        ["todo/" :todo-id] {:delete delete-todo-handler}
         true not-found-handler}])
 
 (def ^:private handler
