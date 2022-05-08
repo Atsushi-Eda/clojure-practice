@@ -50,6 +50,7 @@
 (defn- options-todo-handler [request]
   {:status 200
    :headers {"Access-Control-Allow-Origin" "http://localhost:8080"
+             "Access-Control-Allow-Methods" "GET, POST, DELETE"
              "Access-Control-Allow-Headers" "Content-Type" ;; TODO: 各handlerのAccess-Control-Allow-Originと合わせてRing CORSに移行
              }})
 
@@ -62,7 +63,7 @@
 
 (def ^:private route
   ["/" {"todo" {:get get-todos-handler :post post-todo-handler :options options-todo-handler}
-        ["todo/" :todo-id] {:delete delete-todo-handler}
+        ["todo/" :todo-id] {:delete delete-todo-handler :options options-todo-handler}
         true not-found-handler}])
 
 (def ^:private handler
