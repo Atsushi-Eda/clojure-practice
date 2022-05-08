@@ -7,26 +7,26 @@
    [ring.middleware.cors :as ring-cors]
    [ring.middleware.json :as ring-json]))
 
-(def mysql-db {:dbtype "mysql"
-               :host "localhost"
-               :port 3306
-               :dbname "clojure-practice"
-               :user "root"
-               :password "clojure-practice"})
+(def ^:private mysql-db {:dbtype "mysql"
+                         :host "localhost"
+                         :port 3306
+                         :dbname "clojure-practice"
+                         :user "root"
+                         :password "clojure-practice"})
 
-(defn select-todos []
+(defn- select-todos []
   (jdbc/query mysql-db
               ["select * from todo"]))
 
-(defn insert-todo [title]
+(defn- insert-todo [title]
   (jdbc/insert! mysql-db
                 :todo {:title title}))
 
-(defn update-todo-completed [id completed]
+(defn- update-todo-completed [id completed]
   (jdbc/update! mysql-db
                 :todo {:completed completed} ["id = ?" id]))
 
-(defn delete-todo [id]
+(defn- delete-todo [id]
   (jdbc/delete! mysql-db
                 :todo ["id = ?" id]))
 
@@ -64,7 +64,7 @@
       (ring-json/wrap-json-body {:key-fn keyword})
       (ring-json/wrap-json-response)))
 
-(defn -main
+(defn- -main
   [& args]
   (jetty/run-jetty handler {:host "localhost"
                             :port 8081
