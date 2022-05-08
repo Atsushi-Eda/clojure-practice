@@ -42,7 +42,7 @@
      :body (json/write-str {:id id})}))
 
 (defn- delete-todo-handler [request]
-  (delete-todo ((request :params) :todo-id))
+  (delete-todo ((request :params) :id))
   {:status 200
    :headers {"Access-Control-Allow-Origin" "http://localhost:8080" ;; TODO: middlewareで設定する
              }})
@@ -63,7 +63,7 @@
 
 (def ^:private route
   ["/" {"todo" {:get get-todos-handler :post post-todo-handler :options options-todo-handler}
-        ["todo/" :todo-id] {:delete delete-todo-handler :options options-todo-handler}
+        ["todo/" :id] {:delete delete-todo-handler :options options-todo-handler}
         true not-found-handler}])
 
 (def ^:private handler
